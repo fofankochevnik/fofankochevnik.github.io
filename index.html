@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ГДЗ 4Б</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f1a;
+    --surface: #141628;
+    --card: #1a1d35;
+    --border: #2a2d50;
+    --accent-math: #4f8ef7;
+    --accent-rus: #e05c7a;
+    --text: #e8eaf6;
+    --muted: #6b7194;
+    --glow-math: rgba(79,142,247,0.18);
+    --glow-rus: rgba(224,92,122,0.18);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 80px;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(79,142,247,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(224,92,122,0.07) 0%, transparent 60%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header .badge {
+    display: inline-block;
+    background: var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+  }
+
+  header h1 {
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  header h1 span.math { color: var(--accent-math); }
+  header h1 span.rus  { color: var(--accent-rus); }
+
+  header p {
+    color: var(--muted);
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  @media (max-width: 620px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: box-shadow 0.3s;
+  }
+
+  .card.math { box-shadow: 0 0 0 0 var(--glow-math); }
+  .card.rus  { box-shadow: 0 0 0 0 var(--glow-rus);  }
+  .card.math:focus-within { box-shadow: 0 0 32px 4px var(--glow-math); }
+  .card.rus:focus-within  { box-shadow: 0 0 32px 4px var(--glow-rus);  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .math .card-icon { background: rgba(79,142,247,0.15); }
+  .rus  .card-icon { background: rgba(224,92,122,0.15); }
+
+  .card-title {
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  .math textarea:focus { border-color: var(--accent-math); }
+  .rus  textarea:focus { border-color: var(--accent-rus); }
+
+  textarea::placeholder { color: var(--muted); }
+
+  button.go {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  button.go:active { transform: scale(0.97); opacity: 0.85; }
+  .math button.go { background: var(--accent-math); color: #fff; }
+  .rus  button.go { background: var(--accent-rus);  color: #fff; }
+
+  .results {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    transition: border-color 0.15s, background 0.15s;
+    word-break: break-all;
+  }
+  .math .result-item:hover { border-color: var(--accent-math); background: rgba(79,142,247,0.07); }
+  .rus  .result-item:hover { border-color: var(--accent-rus);  background: rgba(224,92,122,0.07); }
+
+  .result-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .math .result-dot { background: var(--accent-math); }
+  .rus  .result-dot { background: var(--accent-rus); }
+
+  .result-label {
+    color: var(--muted);
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .empty-note {
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 6px 0;
+  }
+
+  .error-note {
+    color: #e05c5c;
+    font-size: 12px;
+    padding: 6px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">4 класс · 4Б</div>
+  <h1>ГДЗ — <span class="math">Математика</span> &amp; <span class="rus">Русский</span></h1>
+  <p>Вставь домашку, получи ссылки на ГДЗ</p>
+</header>
+
+<div class="grid">
+
+  <!-- МАТЕМАТИКА -->
+  <div class="card math">
+    <div class="card-header">
+      <div class="card-icon">➕</div>
+      <div>
+        <div class="card-title">Математика</div>
+        <div class="card-sub">Моро, 4 класс</div>
+      </div>
+    </div>
+    <textarea id="math-input" placeholder="стр 78 №161, стр83 №169&#10;или просто: 78 №161 83 169"></textarea>
+    <button class="go" onclick="generate('math')">Дать план</button>
+    <div class="results" id="math-results"></div>
+  </div>
+
+  <!-- РУССКИЙ -->
+  <div class="card rus">
+    <div class="card-header">
+      <div class="card-icon">📖</div>
+      <div>
+        <div class="card-title">Русский язык</div>
+        <div class="card-sub">Канакина, 4 класс</div>
+      </div>
+    </div>
+    <textarea id="rus-input" placeholder="стр 45 упр 3, с.50 у.12&#10;или: 45 3, 50 12"></textarea>
+    <button class="go" onclick="generate('rus')">Дать план</button>
+    <div class="results" id="rus-results"></div>
+  </div>
+
+</div>
+
+<script>
+const SUBJECTS = {
+  math: {
+    slug: 'matematika',
+    book: 'moro-uchebnik',
+    klass: '4-klass',
+    base: 'https://gdz-raketa.ru',
+    part: null,
+  },
+  rus: {
+    slug: 'russkiy-yazyk',
+    book: 'uchebnik-kanakina',
+    klass: '4-klass',
+    base: 'https://gdz-raketa.ru',
+    part: null,
+  }
+};
+
+function parsePages(text) {
+  const pages = [];
+
+  // Normalize
+  let t = text
+    .toLowerCase()
+    .replace(/страниц[аы]?\.?/g, 'стр.')
+    .replace(/\bс\s*\.\s*/g, 'стр.')
+    .replace(/\bстр\s*\.?\s*/g, 'стр.')
+    .replace(/упражнени[ея]\.?/g, 'упр.')
+    .replace(/\bупр\s*\.?\s*/g, 'упр.')
+    .replace(/№\s*/g, 'упр.')
+    .replace(/[,;]/g, ' , ')
+    .replace(/\s+/g, ' ');
+
+  // Strategy: find all page numbers with their associated tasks
+  // Pattern: (стр.)? NUMBER (упр.? NUMBER)*
+  // We split by potential page anchors
+
+  // Tokenize
+  const tokens = t.split(/\s+/);
+
+  let currentPage = null;
+  const pageSet = new Set();
+
+  let i = 0;
+  while (i < tokens.length) {
+    const tok = tokens[i];
+
+    if (tok === 'стр.' || tok === 'стр') {
+      // next token should be a number
+      if (i + 1 < tokens.length && /^\d+$/.test(tokens[i+1])) {
+        currentPage = parseInt(tokens[i+1], 10);
+        pageSet.add(currentPage);
+        i += 2;
+      } else {
+        i++;
+      }
+      continue;
+    }
+
+    if (/^\d+$/.test(tok)) {
+      const num = parseInt(tok, 10);
+      // Decide: is this a page or an exercise?
+      // Heuristic: if previous token was 'упр.' or ',', it's an exercise
+      // Otherwise, if no current page yet, or after a separator, it might be a page
+      const prev = tokens[i-1] || '';
+      if (prev === 'упр.' || prev === ',') {
+        // exercise number — belongs to currentPage already recorded
+        i++;
+        continue;
+      }
+      // Could be a page number if it's reasonable (1-200)
+      // If next token is also a number or упр., this is likely a page
+      const next = tokens[i+1] || '';
+      if (num >= 1 && num <= 250) {
+        if (next === 'упр.' || /^\d+$/.test(next) || next === ',' || next === '') {
+          currentPage = num;
+          pageSet.add(currentPage);
+        }
+      }
+      i++;
+      continue;
+    }
+
+    i++;
+  }
+
+  return [...pageSet].sort((a, b) => a - b);
+}
+
+function buildUrl(subject, page) {
+  const s = SUBJECTS[subject];
+  // Try to detect part from page number heuristic for Moro (part 1: ~1-100, part 2: ~1-96)
+  // gdz-raketa uses: /matematika/4-klass/moro-uchebnik/2-chast-stranica-45/
+  // For simplicity we'll try both parts — let's just link part 1 if page <= 100, else part 2
+  let partStr = '';
+  partStr = `2-chast-`;
+  const pageWord = subject === 'rus' ? 'stranitsa' : 'stranica';
+  return `${s.base}/${s.slug}/${s.klass}/${s.book}/${partStr}${pageWord}-${page}/`;
+}
+
+function generate(subject) {
+  const input = document.getElementById(`${subject}-input`).value.trim();
+  const container = document.getElementById(`${subject}-results`);
+  container.innerHTML = '';
+
+  if (!input) {
+    container.innerHTML = '<div class="empty-note">Ничего не написано</div>';
+    return;
+  }
+
+  const pages = parsePages(input);
+
+  if (pages.length === 0) {
+    container.innerHTML = '<div class="error-note">Не нашёл номера страниц. Попробуй написать "стр. 78" или просто "78 №161"</div>';
+    return;
+  }
+
+  pages.forEach(page => {
+    const url = buildUrl(subject, page);
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.className = 'result-item';
+    a.innerHTML = `
+      <div class="result-dot"></div>
+      <span class="result-label">стр. ${page}</span>
+      <span>${url.replace('https://', '')}</span>
+    `;
+    container.appendChild(a);
+  });
+}
+
+// Enter to submit within textareas (Ctrl+Enter)
+document.getElementById('math-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) generate('math');
+});
+document.getElementById('rus-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) generate('rus');
+});
+</script>
+</body>
+</html>
