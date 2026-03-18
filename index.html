@@ -275,8 +275,9 @@ function renderHomework(data) {
 function buildGdz(s, meta, el) {
   const links = [];
   if (meta.gdz === 'math') {
-    parseMathRtPages(s.hw).forEach(p => links.push({ url: GDZ.math_rt(p), label:`р.т. стр. ${p}` }));
-    parsePages(s.hw, true).forEach(p => links.push({ url: GDZ.math(p), label:`стр. ${p}` }));
+    const { bookText, rtText } = splitMathText(s.hw);
+    parseMathRtPages(rtText).forEach(p => links.push({ url: GDZ.math_rt(p), label:`р.т. стр. ${p}` }));
+    parsePages(bookText).forEach(p => links.push({ url: GDZ.math(p), label:`стр. ${p}` }));
   }
   if (meta.gdz === 'rus')
     parsePages(s.hw).forEach(p => links.push({ url: GDZ.rus(p), label:`стр. ${p}` }));
@@ -289,14 +290,24 @@ function buildGdz(s, meta, el) {
     el.appendChild(a);
   });
 }
-function isMathRtLine(line) {
-  const l = line.toLowerCase();
-  return l.includes('р.т') || l.includes('рабочая тетр');
+function splitMathText(text) {
+  // Split each line by р.т. / рабочая тетрадь marker
+  // Returns { bookText, rtText }
+  const bookLines = [], rtLines = [];
+  text.split('\n').forEach(line => {
+    const l = line.toLowerCase();
+    const rtIdx = l.search(/р\.т\.?|рабочая\s*тетр/);
+    if (rtIdx === -1) {
+      bookLines.push(line);
+    } else {
+      bookLines.push(line.slice(0, rtIdx)); // part before р.т. → учебник
+      rtLines.push(line.slice(rtIdx));      // part from р.т. onwards → р.т.
+    }
+  });
+  return { bookText: bookLines.join('\n'), rtText: rtLines.join('\n') };
 }
-function parsePages(text, skipRt) {
-  const lines = text.split('\n');
-  const filtered = skipRt ? lines.filter(l => !isMathRtLine(l)).join('\n') : text;
-  let t = filtered.toLowerCase()
+function parsePages(text) {
+  let t = text.toLowerCase()
     .replace(/страниц[аы]?\.?/g,'стр.').replace(/\bс\s*\.\s*/g,'стр.')
     .replace(/\bстр\s*\.?\s*/g,'стр.').replace(/упражнени[ея]\.?/g,'упр.')
     .replace(/\bупр\s*\.?\s*/g,'упр.').replace(/№\s*/g,'упр.')
@@ -315,13 +326,13 @@ function parsePages(text, skipRt) {
   }
   return [...set].sort((a,b)=>a-b);
 }
-function parseMathRtPages(text) {
+function parseMathRtPages(rtText) {
+  // Extract all numbers from rt part of text
   const set = new Set();
-  text.split('\n').forEach(line => {
-    if (!isMathRtLine(line)) return;
+  rtText.split('\n').forEach(line => {
     const l = line.toLowerCase()
-      .replace(/р\.т\.?\s*/g,'').replace(/рабочая тетрадь\.?\s*/g,'')
-      .replace(/стр\.?\s*/g,'').replace(/страниц[аы]?\.?\s*/g,'');
+      .replace(/р\.т\.?\s*/g,' ').replace(/рабочая\s*тетрадь\.?\s*/g,' ')
+      .replace(/стр\.?\s*/g,' ').replace(/страниц[аы]?\.?\s*/g,' ');
     (l.match(/\d+/g)||[]).forEach(n=>{ const v=parseInt(n,10); if(v>=1&&v<=100) set.add(v); });
   });
   return [...set].sort((a,b)=>a-b);
