@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Домашка 4Б</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f1a; --surface: #141628; --card: #1a1d35; --border: #2a2d50;
+    --text: #e8eaf6; --muted: #6b7194;
+    --math:#4f8ef7; --rus:#e05c7a; --lit:#f7a94f; --eng:#4fc9f7; --okr:#6be07a;
+  }
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif;
+    min-height: 100vh; padding: 40px 16px 80px;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% 10%, rgba(79,142,247,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 80%, rgba(224,92,122,0.07) 0%, transparent 60%);
+  }
+  .wrap { max-width: 700px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 40px; }
+  .badge {
+    display: inline-block; background: var(--border); color: var(--muted);
+    font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; padding: 4px 14px; border-radius: 100px; margin-bottom: 14px;
+  }
+  header h1 { font-size: clamp(24px,5vw,40px); font-weight: 900; letter-spacing: -1px; }
+  #hw-date { margin-top: 8px; font-size: 15px; color: var(--muted); font-weight: 700; }
+  .empty-state { text-align: center; color: var(--muted); font-size: 15px; margin-top: 60px; }
+
+  .subject-card {
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 22px 24px; margin-bottom: 18px; background: var(--card);
+    transition: box-shadow 0.3s;
+  }
+  .s-math { --accent: var(--math); }
+  .s-rus  { --accent: var(--rus);  }
+  .s-lit  { --accent: var(--lit);  }
+  .s-eng  { --accent: var(--eng);  }
+  .s-okr  { --accent: var(--okr);  }
+  .subject-card:hover { box-shadow: 0 0 28px 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .subject-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .subject-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--accent); }
+  .subject-name { font-weight: 900; font-size: 17px; }
+  .hw-text {
+    font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap;
+    margin-bottom: 14px; padding: 12px 14px; background: var(--surface);
+    border-radius: 12px; font-family: 'Space Mono', monospace;
+  }
+  .gdz-links { display: flex; flex-direction: column; gap: 8px; }
+  .gdz-link {
+    display: flex; align-items: center; gap: 10px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px;
+    text-decoration: none; color: var(--text); font-size: 12px; font-weight: 700;
+    font-family: 'Space Mono', monospace; transition: border-color 0.15s, background 0.15s; word-break: break-all;
+  }
+  .gdz-link:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .gdz-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--accent); }
+  .gdz-label { color: var(--muted); font-size: 10px; flex-shrink: 0; }
+
+  /* ---- SECRET FRAME ---- */
+  #secret-frame {
+    position: fixed;
+    top: 18px; right: 18px;
+    width: 54px; height: 54px;
+    cursor: pointer;
+    z-index: 100;
+    perspective: 400px;
+  }
+  #secret-frame-inner {
+    width: 100%; height: 100%;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4f8ef7 0%, #a855f7 40%, #e05c7a 80%, #f7a94f 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.15) inset,
+      0 8px 24px rgba(79,142,247,0.35),
+      0 2px 8px rgba(0,0,0,0.4);
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #secret-frame::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(79,142,247,0.6), rgba(168,85,247,0.4), rgba(224,92,122,0.6));
+    z-index: -1;
+    filter: blur(6px);
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+  #secret-frame:hover::before { opacity: 1; }
+  #secret-frame:hover #secret-frame-inner {
+    transform: rotateX(12deg) rotateY(-10deg) scale(1.05);
+    box-shadow: 0 2px 0 rgba(255,255,255,0.2) inset, 0 14px 32px rgba(79,142,247,0.5), 0 4px 12px rgba(0,0,0,0.5);
+  }
+  #secret-frame:active #secret-frame-inner {
+    transform: rotateX(4deg) rotateY(-3deg) scale(0.96);
+  }
+  .frame-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
+    gap: 3px; width: 30px; height: 30px;
+  }
+  .frame-cell {
+    border-radius: 3px;
+    background: rgba(255,255,255,0.25);
+  }
+  .frame-cell:nth-child(2), .frame-cell:nth-child(4), .frame-cell:nth-child(6), .frame-cell:nth-child(8) {
+    background: rgba(255,255,255,0.08);
+  }
+  .frame-cell:nth-child(5) {
+    background: rgba(255,255,255,0.5);
+    box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  }
+
+  /* ---- MODAL ---- */
+  #pw-modal {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+  }
+  #pw-modal.open { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+  .modal-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px; width: 100%; max-width: 340px;
+    display: flex; flex-direction: column; gap: 14px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  }
+  .modal-title { font-weight: 900; font-size: 18px; text-align: center; }
+  .modal-sub { font-size: 13px; color: var(--muted); text-align: center; margin-top: -6px; }
+  .modal-box input {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 14px; padding: 12px 14px; outline: none; transition: border-color 0.2s; width: 100%;
+  }
+  .modal-box input:focus { border-color: var(--accent-math, #4f8ef7); }
+  .modal-box input::placeholder { color: var(--muted); }
+  #pw-error { color: #e05c7a; font-size: 12px; text-align: center; display: none; }
+  .modal-btn {
+    width: 100%; padding: 12px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #4f8ef7, #a855f7);
+    color: #fff; font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 15px; cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  }
+  .modal-btn:active { transform: scale(0.97); opacity: 0.85; }
+  .modal-close {
+    position: absolute; top: 14px; right: 18px;
+    background: none; border: none; color: var(--muted);
+    font-size: 20px; cursor: pointer; line-height: 1;
+  }
+  .modal-box { position: relative; }
+</style>
+</head>
+<body>
+
+<!-- SECRET FRAME -->
+<div id="secret-frame" onclick="openModal()" title="">
+  <div id="secret-frame-inner">
+    <div class="frame-grid">
+      <div class="frame-cell"></div><div class="frame-cell"></div><div class="frame-cell"></div>
+      <div class="frame-cell"></div><div class="frame-cell"></div><div class="frame-cell"></div>
+      <div class="frame-cell"></div><div class="frame-cell"></div><div class="frame-cell"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div id="pw-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">🔐 Доступ</div>
+    <div class="modal-sub">Только для своих</div>
+    <input type="password" id="pw-input" placeholder="Пароль" autocomplete="current-password">
+    <div id="pw-error">Неверный пароль</div>
+    <button class="modal-btn" onclick="checkPw()">Войти</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="badge">4Б · Домашнее задание</div>
+    <h1>Домашка 📚</h1>
+    <div id="hw-date">Загрузка...</div>
+  </header>
+  <div id="hw-list"></div>
+</div>
+
+<script>
+const PASSWORD = 'OA3Byy';
+
+function openModal() {
+  if (localStorage.getItem('admin_auth') === '1') {
+    window.location.href = 'admin.html'; return;
+  }
+  document.getElementById('pw-modal').classList.add('open');
+  setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('pw-modal').classList.remove('open');
+  document.getElementById('pw-error').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+}
+function checkPw() {
+  if (document.getElementById('pw-input').value === PASSWORD) {
+    localStorage.setItem('admin_auth', '1');
+    window.location.href = 'admin.html';
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.getElementById('pw-modal').addEventListener('click', e => { if (e.target === document.getElementById('pw-modal')) closeModal(); });
+
+const GDZ = {
+  math:   p => `https://gdz-raketa.ru/matematika/4-klass/moro-uchebnik/2-chast-stranica-${p}/`,
+  rus:    p => `https://gdz-raketa.ru/russkiy-yazyk/4-klass/uchebnik-kanakina/2-chast-stranitsa-${p}/`,
+  okr_rt:  p => `https://gdz-raketa.ru/okruzhayushchiy-mir/4-klass/rabochaya-tetrad-pleshakov/2-chast-stranica-${p}/`,
+  math_rt: p => `https://gdz-raketa.ru/matematika/4-klass/rabochaya-tetrad-volkova-moro/2-chast-stranica-${p}/`,
+};
+const SUBJECT_META = {
+  math: { label:'Математика',     cls:'s-math', icon:'➕', gdz:'math' },
+  rus:  { label:'Русский язык',   cls:'s-rus',  icon:'📖', gdz:'rus'  },
+  lit:  { label:'Литература',     cls:'s-lit',  icon:'📕', gdz:null   },
+  eng:  { label:'Английский',     cls:'s-eng',  icon:'🇬🇧', gdz:null  },
+  okr:  { label:'Окружающий мир', cls:'s-okr',  icon:'🌍', gdz:'okr'  },
+};
+
+async function loadHomework() {
+  try {
+    const r = await fetch('homework.json?t=' + Date.now());
+    const data = await r.json();
+    renderHomework(data);
+  } catch(e) {
+    document.getElementById('hw-date').textContent = 'Не удалось загрузить данные';
+  }
+}
+function renderHomework(data) {
+  const dateEl = document.getElementById('hw-date');
+  const listEl = document.getElementById('hw-list');
+  if (!data.date && (!data.subjects || !data.subjects.length)) {
+    dateEl.textContent = '';
+    listEl.innerHTML = '<div class="empty-state">Домашка ещё не добавлена 👀</div>';
+    return;
+  }
+  dateEl.textContent = data.date || '';
+  listEl.innerHTML = '';
+  const allowed = ['math','rus','lit','eng','okr'];
+  const subjects = (data.subjects||[]).filter(s => allowed.includes(s.id) && s.hw && s.hw.trim());
+  if (!subjects.length) { listEl.innerHTML='<div class="empty-state">Домашки нет 🎉</div>'; return; }
+  subjects.forEach(s => {
+    const meta = SUBJECT_META[s.id];
+    const card = document.createElement('div');
+    card.className = `subject-card ${meta.cls}`;
+    card.innerHTML = `
+      <div class="subject-header">
+        <div class="subject-dot"></div>
+        <div class="subject-name">${meta.icon} ${meta.label}</div>
+      </div>
+      <div class="hw-text">${esc(s.hw.trim())}</div>
+      <div class="gdz-links" id="gdz-${s.id}"></div>`;
+    listEl.appendChild(card);
+    buildGdz(s, meta, document.getElementById(`gdz-${s.id}`));
+  });
+}
+function buildGdz(s, meta, el) {
+  const links = [];
+  if (meta.gdz === 'math') {
+    parseMathRtPages(s.hw).forEach(p => links.push({ url: GDZ.math_rt(p), label:`р.т. стр. ${p}` }));
+    parsePages(s.hw, true).forEach(p => links.push({ url: GDZ.math(p), label:`стр. ${p}` }));
+  }
+  if (meta.gdz === 'rus')
+    parsePages(s.hw).forEach(p => links.push({ url: GDZ.rus(p), label:`стр. ${p}` }));
+  if (meta.gdz === 'okr')
+    parseRtPages(s.hw).forEach(p => links.push({ url: GDZ.okr_rt(p), label:`р.т. стр. ${p}` }));
+  links.forEach(({ url, label }) => {
+    const a = document.createElement('a');
+    a.href=url; a.target='_blank'; a.rel='noopener'; a.className='gdz-link';
+    a.innerHTML=`<div class="gdz-dot"></div><span class="gdz-label">${label}</span><span>${url.replace('https://','')}</span>`;
+    el.appendChild(a);
+  });
+}
+function isMathRtLine(line) {
+  const l = line.toLowerCase();
+  return l.includes('р.т') || l.includes('рабочая тетр');
+}
+function parsePages(text, skipRt) {
+  const lines = text.split('\n');
+  const filtered = skipRt ? lines.filter(l => !isMathRtLine(l)).join('\n') : text;
+  let t = filtered.toLowerCase()
+    .replace(/страниц[аы]?\.?/g,'стр.').replace(/\bс\s*\.\s*/g,'стр.')
+    .replace(/\bстр\s*\.?\s*/g,'стр.').replace(/упражнени[ея]\.?/g,'упр.')
+    .replace(/\bупр\s*\.?\s*/g,'упр.').replace(/№\s*/g,'упр.')
+    .replace(/[,;]/g,' , ').replace(/\s+/g,' ');
+  const tokens = t.split(/\s+/);
+  const set = new Set(); let i=0;
+  while (i<tokens.length) {
+    const tok=tokens[i];
+    if (tok==='стр.'&&i+1<tokens.length&&/^\d+$/.test(tokens[i+1])) { set.add(parseInt(tokens[i+1],10)); i+=2; continue; }
+    if (/^\d+$/.test(tok)) {
+      const num=parseInt(tok,10), prev=tokens[i-1]||'', next=tokens[i+1]||'';
+      if (prev!=='упр.'&&prev!==','&&num>=1&&num<=250)
+        if (next==='упр.'||/^\d+$/.test(next)||next===','||next==='') set.add(num);
+    }
+    i++;
+  }
+  return [...set].sort((a,b)=>a-b);
+}
+function parseMathRtPages(text) {
+  const set = new Set();
+  text.split('\n').forEach(line => {
+    if (!isMathRtLine(line)) return;
+    const l = line.toLowerCase()
+      .replace(/р\.т\.?\s*/g,'').replace(/рабочая тетрадь\.?\s*/g,'')
+      .replace(/стр\.?\s*/g,'').replace(/страниц[аы]?\.?\s*/g,'');
+    (l.match(/\d+/g)||[]).forEach(n=>{ const v=parseInt(n,10); if(v>=1&&v<=100) set.add(v); });
+  });
+  return [...set].sort((a,b)=>a-b);
+}
+function parseRtPages(text) {
+  const set = new Set();
+  text.split('\n').forEach(line => {
+    const l=line.toLowerCase();
+    if (!l.includes('р.т')&&!l.includes('рабочая тетр')) return;
+    (l.match(/\d+/g)||[]).forEach(n=>{ const v=parseInt(n,10); if(v>=1&&v<=100) set.add(v); });
+  });
+  return [...set].sort((a,b)=>a-b);
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadHomework();
+</script>
+</body>
+</html>
