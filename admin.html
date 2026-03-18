@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админка 4Б</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f1a; --surface: #141628; --card: #1a1d35; --border: #2a2d50;
+    --text: #e8eaf6; --muted: #6b7194; --accent: #4f8ef7; --danger: #e05c7a; --ok: #6be07a;
+  }
+  body { background:var(--bg); color:var(--text); font-family:'Nunito',sans-serif; min-height:100vh; padding:40px 16px 80px; }
+  .wrap { max-width:680px; margin:0 auto; }
+
+  /* ---- login ---- */
+  #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:80vh; gap:20px; }
+  #login-screen h2 { font-size:28px; font-weight:900; }
+  #login-screen p  { color:var(--muted); font-size:14px; }
+  .login-box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px; width:100%; max-width:380px; display:flex; flex-direction:column; gap:14px; }
+  .login-box input { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-family:'Space Mono',monospace; font-size:14px; padding:12px 14px; outline:none; transition:border-color 0.2s; }
+  .login-box input:focus { border-color:var(--accent); }
+  .login-box input::placeholder { color:var(--muted); }
+  #login-error { color:var(--danger); font-size:13px; display:none; }
+
+  /* ---- admin panel ---- */
+  #admin-panel { display:none; }
+  header { text-align:center; margin-bottom:36px; }
+  .badge { display:inline-block; background:var(--border); color:var(--muted); font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:4px 14px; border-radius:100px; margin-bottom:14px; }
+  header h1 { font-size:clamp(22px,5vw,36px); font-weight:900; }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:24px; margin-bottom:20px; }
+  label { display:block; font-weight:700; font-size:13px; color:var(--muted); margin-bottom:8px; font-family:'Space Mono',monospace; text-transform:uppercase; letter-spacing:1px; }
+
+  textarea, input[type=text] {
+    width:100%; background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
+    color:var(--text); font-family:'Space Mono',monospace; font-size:13px; padding:12px 14px;
+    outline:none; transition:border-color 0.2s; line-height:1.6; resize:vertical;
+  }
+  textarea:focus, input[type=text]:focus { border-color:var(--accent); }
+  textarea::placeholder, input[type=text]::placeholder { color:var(--muted); }
+  #hw-blob { min-height:280px; }
+
+  .preview-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:14px; font-size:13px; line-height:1.8; display:none; }
+  .preview-subject { font-weight:900; margin-bottom:4px; }
+  .preview-hw { font-family:'Space Mono',monospace; font-size:12px; color:var(--muted); white-space:pre-wrap; margin-bottom:10px; }
+
+  /* config card */
+  .config-row { display:flex; flex-direction:column; gap:10px; }
+  .config-row input { font-size:12px; }
+  .config-hint { font-size:11px; color:var(--muted); margin-top:-4px; }
+
+  /* buttons */
+  .btn { padding:13px 24px; border-radius:12px; border:none; font-family:'Nunito',sans-serif; font-weight:900; font-size:15px; cursor:pointer; transition:opacity 0.15s,transform 0.1s; }
+  .btn:active { transform:scale(0.97); opacity:0.8; }
+  .btn-primary { background:var(--accent); color:#fff; width:100%; }
+  .btn-secondary { background:var(--border); color:var(--text); }
+  .btn-danger { background:var(--danger); color:#fff; }
+
+  #status-msg { text-align:center; font-size:13px; font-weight:700; padding:10px; border-radius:10px; display:none; }
+  #status-msg.ok  { background:rgba(107,224,122,0.12); color:var(--ok); }
+  #status-msg.err { background:rgba(224,92,122,0.12); color:var(--danger); }
+
+  .row-btns { display:flex; gap:10px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <h2>🔐 Админка 4Б</h2>
+  <p>Введи пароль чтобы войти</p>
+  <div class="login-box">
+    <input type="password" id="pw-input" placeholder="Пароль" autocomplete="current-password">
+    <div id="login-error">Неверный пароль</div>
+    <button class="btn btn-primary" onclick="checkPw()">Войти</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-panel">
+<div class="wrap">
+  <header>
+    <div class="badge">Панель управления</div>
+    <h1>Домашка 4Б ✏️</h1>
+  </header>
+
+  <!-- GITHUB CONFIG -->
+  <div class="card" id="config-card">
+    <label>⚙️ Настройки GitHub (один раз)</label>
+    <div class="config-row">
+      <input type="text" id="gh-token" placeholder="GitHub Personal Access Token (ghp_...)" autocomplete="off">
+      <div class="config-hint">Settings → Developer settings → Personal access tokens → Fine-grained → repo: Contents read+write</div>
+      <input type="text" id="gh-repo" placeholder="username/repo-name (например school4b/homework)">
+      <input type="text" id="gh-branch" placeholder="Ветка (обычно main или master)">
+      <button class="btn btn-secondary" style="width:100%" onclick="saveConfig()">Сохранить настройки</button>
+    </div>
+  </div>
+
+  <!-- HOMEWORK INPUT -->
+  <div class="card">
+    <label>📋 Вставь расписание с домашкой</label>
+    <textarea id="hw-blob" placeholder="📅 Вторник, 17 марта
+
+1: Математика, 08:30—09:15
+⇨ Тема урока
+🏠 Стр. 44 №158,№159
+
+2: Русский язык, 09:30—10:15
+⇨ Глаголы
+🏠 Стр. 78 №161, словарь
+
+..."></textarea>
+    <div style="margin-top:12px; display:flex; gap:10px;">
+      <button class="btn btn-secondary" onclick="previewParse()">👁 Предпросмотр</button>
+      <button class="btn btn-danger" onclick="clearHomework()">🗑 Очистить</button>
+    </div>
+    <div class="preview-box" id="preview-box"></div>
+  </div>
+
+  <div id="status-msg"></div>
+  <button class="btn btn-primary" onclick="publish()">🚀 Опубликовать домашку</button>
+</div>
+</div>
+
+<script>
+const PASSWORD = 'OA3Byy';
+const HW_FILE  = 'homework.json';
+
+// ---- AUTH ----
+function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PASSWORD) {
+    localStorage.setItem('admin_auth', '1');
+    showAdmin();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key==='Enter') checkPw(); });
+
+function showAdmin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+  loadConfig();
+}
+if (localStorage.getItem('admin_auth') === '1') showAdmin();
+
+// ---- CONFIG ----
+function saveConfig() {
+  localStorage.setItem('gh_token',  document.getElementById('gh-token').value.trim());
+  localStorage.setItem('gh_repo',   document.getElementById('gh-repo').value.trim());
+  localStorage.setItem('gh_branch', document.getElementById('gh-branch').value.trim() || 'main');
+  showStatus('Настройки сохранены', 'ok');
+}
+function loadConfig() {
+  document.getElementById('gh-token').value  = localStorage.getItem('gh_token')  || '';
+  document.getElementById('gh-repo').value   = localStorage.getItem('gh_repo')   || '';
+  document.getElementById('gh-branch').value = localStorage.getItem('gh_branch') || 'main';
+}
+
+// ---- PARSE ----
+const SUBJECT_ALIASES = {
+  math: ['математик'],
+  rus:  ['русский','русск','русяз','рус яз'],
+  lit:  ['литератур','лит чтен','литературное'],
+  eng:  ['английск','англ','english'],
+  okr:  ['окружающ','окр мир','окружающий мир'],
+};
+function detectSubject(name) {
+  const n = name.toLowerCase();
+  for (const [id, aliases] of Object.entries(SUBJECT_ALIASES))
+    for (const alias of aliases) if (n.includes(alias)) return id;
+  return null;
+}
+
+function parseBlob(raw) {
+  const lines = raw.split('\n');
+  let date = '';
+  const subjects = [];
+  let current = null;
+  let hwLines = [];
+
+  const flush = () => {
+    if (current && hwLines.length) {
+      subjects.push({ id: current, hw: hwLines.join('\n').trim() });
+    } else if (current) {
+      // no homework
+    }
+    current = null; hwLines = [];
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Date line (contains 📅 or day name)
+    if (!date && (trimmed.includes('📅') || /понедельник|вторник|среда|четверг|пятниц|суббот|воскресен/i.test(trimmed))) {
+      date = trimmed.replace('📅','').trim();
+      continue;
+    }
+
+    // Lesson line: starts with digit + colon
+    const lessonMatch = trimmed.match(/^(\d+)\s*[:\.\)]\s*(.+)/);
+    if (lessonMatch) {
+      flush();
+      const subjectRaw = lessonMatch[2].split(',')[0].trim();
+      current = detectSubject(subjectRaw);
+      hwLines = [];
+      continue;
+    }
+
+    // Homework line: starts with 🏠
+    if (trimmed.startsWith('🏠')) {
+      const hw = trimmed.replace(/^🏠\s*/, '');
+      if (hw) hwLines.push(hw);
+      continue;
+    }
+
+    // Continuation of homework (not a theme line ⇨, not empty, not a new lesson)
+    if (current && hwLines.length > 0 && trimmed && !trimmed.startsWith('⇨')) {
+      hwLines.push(trimmed);
+      continue;
+    }
+  }
+  flush();
+
+  // deduplicate by subject id (keep last)
+  const map = {};
+  subjects.forEach(s => { if (s.id) map[s.id] = s; });
+  const ORDER = ['math','rus','lit','eng','okr'];
+  const result = ORDER.map(id => map[id]).filter(Boolean);
+
+  return { date, subjects: result };
+}
+
+function previewParse() {
+  const raw = document.getElementById('hw-blob').value;
+  const data = parseBlob(raw);
+  const box = document.getElementById('preview-box');
+  if (!data.subjects.length) {
+    box.innerHTML = '<span style="color:var(--muted)">Ничего не распознано</span>';
+  } else {
+    const NAMES = { math:'Математика', rus:'Русский', lit:'Литература', eng:'Английский', okr:'Окружающий мир' };
+    box.innerHTML = `<div style="margin-bottom:8px;font-weight:900">${data.date}</div>` +
+      data.subjects.map(s =>
+        `<div class="preview-subject">${NAMES[s.id]||s.id}</div><div class="preview-hw">${esc(s.hw)}</div>`
+      ).join('');
+  }
+  box.style.display = 'block';
+}
+
+function clearHomework() {
+  if (!confirm('Очистить текущую домашку на сайте?')) return;
+  pushToGitHub({ date:'', subjects:[] });
+}
+
+// ---- PUBLISH ----
+async function publish() {
+  const raw = document.getElementById('hw-blob').value.trim();
+  if (!raw) { showStatus('Поле пустое', 'err'); return; }
+  const data = parseBlob(raw);
+  if (!data.subjects.length) { showStatus('Ничего не распознано — проверь формат', 'err'); return; }
+  await pushToGitHub(data);
+}
+
+async function pushToGitHub(data) {
+  const token  = localStorage.getItem('gh_token');
+  const repo   = localStorage.getItem('gh_repo');
+  const branch = localStorage.getItem('gh_branch') || 'main';
+
+  if (!token || !repo) { showStatus('Сначала заполни настройки GitHub', 'err'); return; }
+
+  showStatus('Публикуем...', 'ok');
+
+  try {
+    // Get current file SHA (needed for update)
+    let sha = null;
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${HW_FILE}?ref=${branch}`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (getRes.ok) { const j = await getRes.json(); sha = j.sha; }
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    const body = { message: `update homework ${data.date||''}`, content, branch };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${HW_FILE}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (putRes.ok) {
+      showStatus('✅ Домашка опубликована!', 'ok');
+      document.getElementById('hw-blob').value = '';
+      document.getElementById('preview-box').style.display = 'none';
+    } else {
+      const err = await putRes.json();
+      showStatus('Ошибка GitHub: ' + (err.message||putRes.status), 'err');
+    }
+  } catch(e) {
+    showStatus('Ошибка: ' + e.message, 'err');
+  }
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg; el.className = type; el.style.display = 'block';
+  if (type==='ok') setTimeout(()=>{ el.style.display='none'; }, 4000);
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
